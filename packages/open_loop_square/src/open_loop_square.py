@@ -34,7 +34,9 @@ class Drive_Square:
  
     # Spin forever but listen to message callbacks
     def run(self):
-    	rospy.spin() # keeps node from exiting until node has shutdown
+		rospy.sleep(2)  # wait for node to be ready
+		self.move_robot()
+		rospy.spin() # keeps node from exiting until node has shutdown
 
     # Robot drives in a square and then stops
     def move_robot(self):
