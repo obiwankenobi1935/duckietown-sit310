@@ -43,7 +43,7 @@ class Drive_Square:
             self.cmd_msg.omega = 2.0
             self.pub.publish(self.cmd_msg)
             rospy.loginfo("Turning!")
-            rospy.sleep(0.785)
+            rospy.sleep(0.9)
 
         self.stop_robot()
         rospy.loginfo("Square complete!")
