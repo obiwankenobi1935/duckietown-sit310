@@ -30,21 +30,23 @@ class Drive_Square:
         rospy.spin()
 
     def move_robot(self):
-        self.cmd_msg.header.stamp = rospy.Time.now()
-        self.cmd_msg.v = 0.5
-        self.cmd_msg.omega = 0.0
-        self.pub.publish(self.cmd_msg)
-        rospy.loginfo("Forward!")
-        rospy.sleep(1)
+        for i in range(4):
+            self.cmd_msg.header.stamp = rospy.Time.now()
+            self.cmd_msg.v = 0.5
+            self.cmd_msg.omega = 0.0
+            self.pub.publish(self.cmd_msg)
+            rospy.loginfo("Forward!")
+            rospy.sleep(2)
 
-        self.cmd_msg.header.stamp = rospy.Time.now()
-        self.cmd_msg.v = -0.5
-        self.cmd_msg.omega = 0.0
-        self.pub.publish(self.cmd_msg)
-        rospy.loginfo("Backward!")
-        rospy.sleep(1)
+            self.cmd_msg.header.stamp = rospy.Time.now()
+            self.cmd_msg.v = 0.0
+            self.cmd_msg.omega = 2.0
+            self.pub.publish(self.cmd_msg)
+            rospy.loginfo("Turning!")
+            rospy.sleep(0.8)
 
         self.stop_robot()
+        rospy.loginfo("Square complete!")
 
 if __name__ == '__main__':
     try:
