@@ -39,7 +39,13 @@ class Target_Follower:
         cmd_msg = Twist2DStamped()
         cmd_msg.header.stamp = rospy.Time.now()
         cmd_msg.v = 0.0
-        cmd_msg.omega = 0.0
+
+        # Proportional control
+        Kp = 3.0
+        omega = -Kp * x
+        omega = max(-3.0, min(3.0, omega))
+
+        cmd_msg.omega = omega
         self.cmd_vel_pub.publish(cmd_msg)
 
 if __name__ == '__main__':
