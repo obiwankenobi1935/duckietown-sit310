@@ -8,12 +8,9 @@ class Target_Follower:
         rospy.init_node('target_follower_node', anonymous=True)
         rospy.on_shutdown(self.clean_shutdown)
 
-        # Goal distance to keep from the tag (in meters)
         self.goal_distance = 0.3
-
-        # Proportional gains
-        self.Kp_omega = 1.5   # gain for rotation
-        self.Kp_v = 0.8       # gain for forward/backward
+        self.Kp_omega = 1.5
+        self.Kp_v = 0.8
 
         self.cmd_vel_pub = rospy.Publisher('/myboty002833/car_cmd_switch_node/cmd', Twist2DStamped, queue_size=1)
         rospy.Subscriber('/myboty002833/apriltag_detector_node/detections', AprilTagDetectionArray, self.tag_callback, queue_size=1)
@@ -39,7 +36,6 @@ class Target_Follower:
         cmd_msg.header.stamp = rospy.Time.now()
 
         if len(detections) == 0:
-            # No tag detected - stay stationary
             rospy.loginfo("No tag detected. Staying still.")
             cmd_msg.v = 0.0
             cmd_msg.omega = 0.0
@@ -49,14 +45,12 @@ class Target_Follower:
             z = detections[0].transform.translation.z
             rospy.loginfo("Tag detected! x,y,z: %f %f %f", x, y, z)
 
-            # Rotation control - keep tag centered using x
             if abs(x) < 0.05:
                 omega = 0.0
             else:
                 omega = -self.Kp_omega * x
                 omega = max(-2.0, min(2.0, omega))
 
-            # Distance control - keep goal distance using z
             distance_error = z - self.goal_distance
             if abs(distance_error) < 0.05:
                 v = 0.0
