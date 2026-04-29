@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import rospy
 from duckietown_msgs.msg import Twist2DStamped
-from duckietown_msgs.msg import FSMState
 from duckietown_msgs.msg import AprilTagDetectionArray
 
 class Target_Follower:
     def __init__(self):
         rospy.init_node('target_follower_node', anonymous=True)
         rospy.on_shutdown(self.clean_shutdown)
+
+        self.seeking = True  # Start in seeking mode
 
         self.cmd_vel_pub = rospy.Publisher('/myboty002833/car_cmd_switch_node/cmd', Twist2DStamped, queue_size=1)
         rospy.Subscriber('/myboty002833/apriltag_detector_node/detections', AprilTagDetectionArray, self.tag_callback, queue_size=1)
@@ -29,23 +30,42 @@ class Target_Follower:
         self.cmd_vel_pub.publish(cmd_msg)
 
     def move_robot(self, detections):
-        if len(detections) == 0:
-            return
-        x = detections[0].transform.translation.x
-        y = detections[0].transform.translation.y
-        z = detections[0].transform.translation.z
-        rospy.loginfo("x,y,z: %f %f %f", x, y, z)
-
         cmd_msg = Twist2DStamped()
         cmd_msg.header.stamp = rospy.Time.now()
         cmd_msg.v = 0.0
 
-        # Proportional control
-        Kp = 3.0
-        omega = -Kp * x
-        omega = max(-3.0, min(3.0, omega))
+        if len(detections) == 0:
+            # No tag detected — seek by rotating
+            if not self.seeking:
+                rospy.loginfo("No tag detected. Seeking...")
+                self.seeking = True
+            cmd_msg.omega = 1.5  # Rotate to seek
+        else:
+            # Tag detected — track it
+            x = detections[0].transform.translation.x
+            y = detections[0].transform.translation.y
+            z = detections[0].transform.translation.z
+            rospy.loginfo("Tag detected! x,y,z: %f %f %f", x, y, z)
 
-        cmd_msg.omega = omega
+            if self.seeking:
+                rospy.loginfo("Tag found! Switching to tracking mode.")
+                self.seeking = False
+
+            # Proportional control to center the tag
+            Kp = 3.0
+            omega = -Kp * x
+
+            # Minimum omega to overcome friction
+            if 0 < omega < 0.5:
+                omega = 0.5
+            elif -0.5 < omega < 0:
+                omega = -0.5
+
+            # Clamp maximum omega
+            omega = max(-3.0, min(3.0, omega))
+
+            cmd_msg.omega = omega
+
         self.cmd_vel_pub.publish(cmd_msg)
 
 if __name__ == '__main__':
