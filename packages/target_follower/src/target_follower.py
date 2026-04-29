@@ -30,27 +30,32 @@ class Target_Follower:
         cmd_msg = Twist2DStamped()
         cmd_msg.header.stamp = rospy.Time.now()
         cmd_msg.v = 0.0
+
         if len(detections) == 0:
             if not self.seeking:
                 rospy.loginfo("No tag detected. Seeking...")
                 self.seeking = True
-            cmd_msg.omega = 1.5
+            cmd_msg.omega = 1.0
+
         else:
             x = detections[0].transform.translation.x
             y = detections[0].transform.translation.y
             z = detections[0].transform.translation.z
             rospy.loginfo("Tag detected! x,y,z: %f %f %f", x, y, z)
+
             if self.seeking:
                 rospy.loginfo("Tag found! Switching to tracking mode.")
                 self.seeking = False
-            Kp = 3.0
-            omega = -Kp * x
-            if 0 < omega < 0.5:
-                omega = 0.5
-            elif -0.5 < omega < 0:
-                omega = -0.5
-            omega = max(-3.0, min(3.0, omega))
-            cmd_msg.omega = omega
+
+            if abs(x) < 0.05:
+                rospy.loginfo("Tag centered!")
+                cmd_msg.omega = 0.0
+            else:
+                Kp = 1.5
+                omega = -Kp * x
+                omega = max(-2.0, min(2.0, omega))
+                cmd_msg.omega = omega
+
         self.cmd_vel_pub.publish(cmd_msg)
 
 if __name__ == '__main__':
