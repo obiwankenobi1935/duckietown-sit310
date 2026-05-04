@@ -1,0 +1,5 @@
+<launch>
+  <group ns="myboty002833">
+    <node pkg="closed_loop_square" type="closed_loop_square.py" name="closed_loop_square" output="screen"/>
+  </group>
+</launch>
