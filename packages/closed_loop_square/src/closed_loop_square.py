@@ -9,7 +9,7 @@ class ClosedLoopSquare:
 
         # Encoder tick thresholds based on measurements
         self.TICKS_PER_METER = 460
-        self.TICKS_PER_90_DEG = 47.5  # average of left and right turns
+        self.TICKS_PER_90_DEG = 49  # average of left and right turns
 
         # Encoder state
         self.left_ticks = 0
